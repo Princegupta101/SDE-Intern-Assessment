@@ -1,36 +1,23 @@
-import { NextResponse } from 'next/server';
-
-import { auth } from '@/utils/authMiddleware';
+// /app/api/cars/route.js
 import Car from '@/models/carModel';
 import dbConnect from '@/utils/dbConfig';
 
 export async function GET(request) {
   try {
-    const user = await auth(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-    
     await dbConnect();
-    
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search');
-    
-    let query = { userId: user.userId };
-    if (search) {
-      query.$text = { $search: search };
-    }
-    
-    const cars = await Car.find(query).sort({ createdAt: -1 });
-    
-    return NextResponse.json(cars);
+
+    // Fetch all cars without filtering by user ID
+    const cars = await Car.find();
+
+    return new Response(JSON.stringify(cars), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    console.error('Error fetching cars:', error);
+    return new Response(JSON.stringify({ error: 'Failed to fetch cars' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

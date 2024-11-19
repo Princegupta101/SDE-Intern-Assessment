@@ -8,6 +8,7 @@ export async function GET(request, { params }) {
   try {
     const user = await auth(request);
     if (!user) {
+      console.error('Unauthorized access attempt for GET car');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -16,7 +17,6 @@ export async function GET(request, { params }) {
     
     await dbConnect();
     
-    // Validate params.id
     if (!params.id) {
       return NextResponse.json(
         { error: 'Car ID is required' },
@@ -27,7 +27,7 @@ export async function GET(request, { params }) {
     const car = await Car.findOne({
       _id: params.id,
       userId: user.userId,
-    }).lean(); // Use .lean() for performance and to ensure plain object
+    }).lean(); // Use .lean() for performance optimization
     
     if (!car) {
       return NextResponse.json(
@@ -45,7 +45,7 @@ export async function GET(request, { params }) {
     return NextResponse.json(
       { 
         error: 'Failed to retrieve car', 
-        details: error.message 
+        details: 'An internal error occurred. Please try again later.' 
       },
       { status: 500 }
     );
@@ -56,6 +56,7 @@ export async function PATCH(request, { params }) {
   try {
     const user = await auth(request);
     if (!user) {
+      console.error('Unauthorized access attempt for PATCH car');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -64,7 +65,6 @@ export async function PATCH(request, { params }) {
     
     await dbConnect();
     
-    // Validate params.id
     if (!params.id) {
       return NextResponse.json(
         { error: 'Car ID is required' },
@@ -72,7 +72,6 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    // Safely parse request body
     let updates;
     try {
       updates = await request.json();
@@ -87,7 +86,6 @@ export async function PATCH(request, { params }) {
     // Prevent updating certain fields
     const { userId, _id, ...allowedUpdates } = updates;
 
-    // Validate updates
     if (Object.keys(allowedUpdates).length === 0) {
       return NextResponse.json(
         { error: 'No valid updates provided' },
@@ -102,9 +100,8 @@ export async function PATCH(request, { params }) {
         new: true, 
         runValidators: true,
         context: 'query'
-      }
-    );
-    
+      }).lean(); // .lean() for performance
+
     if (!car) {
       return NextResponse.json(
         { error: 'Car not found or unauthorized' },
@@ -118,7 +115,7 @@ export async function PATCH(request, { params }) {
     return NextResponse.json(
       { 
         error: 'Failed to update car', 
-        details: error.message 
+        details: 'An internal error occurred. Please try again later.' 
       },
       { status: 500 }
     );
@@ -129,6 +126,7 @@ export async function DELETE(request, { params }) {
   try {
     const user = await auth(request);
     if (!user) {
+      console.error('Unauthorized access attempt for DELETE car');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -137,7 +135,6 @@ export async function DELETE(request, { params }) {
     
     await dbConnect();
     
-    // Validate params.id
     if (!params.id) {
       return NextResponse.json(
         { error: 'Car ID is required' },
@@ -149,7 +146,7 @@ export async function DELETE(request, { params }) {
       _id: params.id,
       userId: user.userId,
     });
-    
+
     if (!car) {
       return NextResponse.json(
         { error: 'Car not found or unauthorized' },
@@ -168,7 +165,7 @@ export async function DELETE(request, { params }) {
     return NextResponse.json(
       { 
         error: 'Failed to delete car', 
-        details: error.message 
+        details: 'An internal error occurred. Please try again later.' 
       },
       { status: 500 }
     );

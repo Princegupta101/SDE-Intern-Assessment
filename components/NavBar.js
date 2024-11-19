@@ -5,37 +5,24 @@ import { useEffect, useState } from 'react';
 
 export default function NavBar() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [token, setToken] = useState(null);
+
+  const checkToken = () => {
+    const storedToken = localStorage.getItem('token');
+    setToken(storedToken);
+  };
 
   useEffect(() => {
-    // Check if the token is present in cookies (this handles page reloads)
-    const checkToken = () => {
-      const token = document.cookie.split('; ').find(row => row.startsWith('token='));
-      setIsLoggedIn(!!token);
-    };
-
     checkToken();
 
-    // Event listener for storage updates across tabs to keep login state synced
     window.addEventListener('storage', checkToken);
-
-    return () => {
-      window.removeEventListener('storage', checkToken);
-    };
+    return () => window.removeEventListener('storage', checkToken);
   }, []);
 
-  const handleLogout = async () => {
-    // Remove the token from cookies
-    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-    
-    // Update login state
-    setIsLoggedIn(false);
-
-    // Dispatch event to trigger other tabs to refresh state
-    window.dispatchEvent(new Event('storage'));
-
-    // Redirect to login page
-    router.push('/login');
+  const handleLogout = () => {
+    localStorage.clear();
+    setToken(null);
+    router.push('/');
   };
 
   return (
@@ -43,14 +30,13 @@ export default function NavBar() {
       <Link href="/" className="text-xl font-bold">
         Car Management
       </Link>
-
       <div className="space-x-4">
-        {isLoggedIn ? (
+        {token ? (
           <>
             <Link href="/dashboard" className="hover:text-gray-300">
               Dashboard
             </Link>
-            <Link href="/add-car" className="hover:text-gray-300">
+            <Link href="/cars/create" className="hover:text-gray-300">
               Add Car
             </Link>
             <button

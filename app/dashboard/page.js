@@ -1,4 +1,5 @@
 'use client';
+import { debounce } from 'lodash';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -10,9 +11,10 @@ export default function Dashboard() {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
+  
   // Fetch cars from the API
   const fetchCars = async (searchTerm = '') => {
+    setLoading(true);
     try {
       const url = searchTerm
         ? `/api/cars/get?search=${encodeURIComponent(searchTerm)}`
@@ -31,20 +33,22 @@ export default function Dashboard() {
       const data = await res.json();
       setCars(data);
     } catch (error) {
-      setError(error.message);
+      setError(error.message || 'An error occurred while fetching cars');
     } finally {
       setLoading(false);
     }
   };
 
+  // Using useEffect to fetch cars when the page loads
   useEffect(() => {
     fetchCars();
   }, []);
 
-  const handleSearch = (searchTerm) => {
+  // Debounced search function to optimize API calls
+  const handleSearch = debounce((searchTerm) => {
     setLoading(true);
     fetchCars(searchTerm);
-  };
+  }, 500); // 500ms debounce
 
   if (loading) {
     return (
@@ -57,7 +61,15 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="text-red-600 text-xl font-semibold">{error}</div>
+        <div className="text-red-600 text-xl font-semibold">
+          {error}
+          <button
+            onClick={() => fetchCars()}
+            className="block mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
