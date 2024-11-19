@@ -42,7 +42,10 @@ export default function Login() {
       if (res.ok) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user_id', data.userId);
+        
+        // Force re-render of NavBar component
         router.push('/dashboard');
+        window.location.reload();  // This will refresh the page to update the UI state
       } else {
         setError(data.error || 'Invalid email or password');
       }

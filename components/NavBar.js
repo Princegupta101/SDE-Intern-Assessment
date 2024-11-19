@@ -15,6 +15,7 @@ export default function NavBar() {
   useEffect(() => {
     checkToken();
 
+    // Event listener for localStorage changes
     window.addEventListener('storage', checkToken);
     return () => window.removeEventListener('storage', checkToken);
   }, []);
